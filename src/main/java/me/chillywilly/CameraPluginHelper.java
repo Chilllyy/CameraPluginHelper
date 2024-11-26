@@ -10,8 +10,10 @@ public class CameraPluginHelper implements ModInitializer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+	public static boolean remove = false;
+
 	@Override
 	public void onInitialize() {
-
+		
 	}
 }
