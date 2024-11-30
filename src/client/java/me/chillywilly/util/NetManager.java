@@ -21,7 +21,6 @@ public class NetManager {
             int auth = buf.readInt();
             CameraPluginHelper.LOGGER.info("Received screenshot packed, Auth ID {}", auth);
             //TODO screenshot & return SCREENSHOT_TAKEN_ID packet
-            CameraPluginHelper.remove = true;
             client.execute(() -> {
                 client.setScreen(null);
             });
@@ -41,14 +40,12 @@ public class NetManager {
                                 CameraPluginHelper.LOGGER.info("Couldn't save screenshot: ", e);
                             } finally {
                                 image.close();
+                                ClientPlayNetworking.send(NetConst.SCREENSHOT_TAKEN_ID, PacketByteBufs.empty());
                             }
                         });
                     });
-                    CameraPluginHelper.remove = false;
                 }
             }, 250);
-
-            ClientPlayNetworking.send(NetConst.SCREENSHOT_TAKEN_ID, PacketByteBufs.empty());
 
             //TODO upload screenshot
         });
