@@ -8,6 +8,4 @@ public class CameraPluginHelperClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		NetManager.init();
 	}
-
-
 }

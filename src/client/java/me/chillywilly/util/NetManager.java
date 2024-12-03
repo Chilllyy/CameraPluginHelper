@@ -46,6 +46,12 @@ public class NetManager {
 
                         String endpoint = "http://localhost:9090/up_post";
 
+                        if (file2.exists()) {
+                            CameraPluginHelper.LOGGER.error("Unable to find recently taken screenshot, name: " + file2.getName());
+                            return;
+                        }
+
+                        
                         
 
                         
