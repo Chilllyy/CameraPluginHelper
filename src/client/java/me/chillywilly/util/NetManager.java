@@ -43,6 +43,12 @@ public class NetManager {
                                 ClientPlayNetworking.send(NetConst.SCREENSHOT_TAKEN_ID, PacketByteBufs.empty());
                             }
                         });
+
+                        String endpoint = "http://localhost:9090/up_post";
+
+                        
+
+                        
                     });
                 }
             }, 250);
