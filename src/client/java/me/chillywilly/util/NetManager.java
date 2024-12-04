@@ -1,6 +1,7 @@
 package me.chillywilly.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -13,6 +14,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.util.Util;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class NetManager {
     public static void init() {
@@ -20,7 +27,6 @@ public class NetManager {
             buf.readByte();
             int auth = buf.readInt();
             CameraPluginHelper.LOGGER.info("Received screenshot packed, Auth ID {}", auth);
-            //TODO screenshot & return SCREENSHOT_TAKEN_ID packet
             client.execute(() -> {
                 client.setScreen(null);
             });
@@ -36,6 +42,18 @@ public class NetManager {
                         Util.getIoWorkerExecutor().execute(() -> {
                             try {
                                 image.writeTo(file2);
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        String endpoint = "http://localhost:9090/up_post";
+
+                                        try {
+                                            uploadFile(file2, endpoint, auth);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }, 1000);
                             } catch (Exception e) {
                                 CameraPluginHelper.LOGGER.info("Couldn't save screenshot: ", e);
                             } finally {
@@ -43,23 +61,9 @@ public class NetManager {
                                 ClientPlayNetworking.send(NetConst.SCREENSHOT_TAKEN_ID, PacketByteBufs.empty());
                             }
                         });
-
-                        String endpoint = "http://localhost:9090/up_post";
-
-                        if (file2.exists()) {
-                            CameraPluginHelper.LOGGER.error("Unable to find recently taken screenshot, name: " + file2.getName());
-                            return;
-                        }
-
-                        
-                        
-
-                        
                     });
                 }
             }, 250);
-
-            //TODO upload screenshot
         });
 
         ClientPlayNetworking.registerGlobalReceiver(NetConst.CHECK_FOR_COMPANION_ID, (client, handler, buf, responseSender) -> {
@@ -68,6 +72,31 @@ public class NetManager {
             //sends response packet so the server knows that the client has the mod
             ClientPlayNetworking.send(NetConst.COMPANION_FOUND_ID, PacketByteBufs.empty());
         });
+    }
+
+    public static void uploadFile(File file, String URL, int auth) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+
+        RequestBody body = RequestBody.create(file, MediaType.parse("image/png"));
+        MultipartBody requestBody = new MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart("files", file.getName(), body)
+        .addFormDataPart("auth", String.valueOf(auth))
+        .build();
+
+        Request request = new Request.Builder()
+        .url(URL)
+        .post(requestBody)
+        .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            CameraPluginHelper.LOGGER.info("Response: " + response.body());
+            if (response.isSuccessful()) {
+                CameraPluginHelper.LOGGER.info("Successfully uploaded image: " + file.getName());
+            } else {
+                CameraPluginHelper.LOGGER.warn("Upload Failed: " + response.code());
+            }
+        }
     }
 
     public static File getScreenshotFile(File directory) {
