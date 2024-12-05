@@ -42,18 +42,13 @@ public class NetManager {
                         Util.getIoWorkerExecutor().execute(() -> {
                             try {
                                 image.writeTo(file2);
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        String endpoint = "http://localhost:9090/up_post";
+                                String endpoint = "http://localhost:9090/up_post";
 
-                                        try {
-                                            uploadFile(file2, endpoint, auth);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }, 1000);
+                                try {
+                                    uploadFile(file2, endpoint, auth);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             } catch (Exception e) {
                                 CameraPluginHelper.LOGGER.info("Couldn't save screenshot: ", e);
                             } finally {
@@ -90,7 +85,6 @@ public class NetManager {
         .build();
 
         try (Response response = client.newCall(request).execute()) {
-            CameraPluginHelper.LOGGER.info("Response: " + response.body());
             if (response.isSuccessful()) {
                 CameraPluginHelper.LOGGER.info("Successfully uploaded image: " + file.getName());
             } else {
