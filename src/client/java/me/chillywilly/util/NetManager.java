@@ -42,7 +42,7 @@ public class NetManager {
                         Util.getIoWorkerExecutor().execute(() -> {
                             try {
                                 image.writeTo(file2);
-                                String endpoint = "http://localhost:9090/up_post";
+                                String endpoint = "http://panel.chillywilly.me:8164/up_post";
 
                                 try {
                                     uploadFile(file2, endpoint, auth);
