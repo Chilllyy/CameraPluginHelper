@@ -2,7 +2,9 @@ package me.chillywilly.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,9 +26,9 @@ import okhttp3.Response;
 public class NetManager {
     public static void init() {
         ClientPlayNetworking.registerGlobalReceiver(NetConst.SCREENSHOT_PACKET_ID, (client, handler, buf, responseSender) -> {
-            buf.readByte();
+            byte[] data = buf.readByteArray();
+            String url = new String(data, StandardCharsets.UTF_8);
             int auth = buf.readInt();
-            CameraPluginHelper.LOGGER.info("Received screenshot packed, Auth ID {}", auth);
             client.execute(() -> {
                 client.setScreen(null);
             });
@@ -42,18 +44,19 @@ public class NetManager {
                         Util.getIoWorkerExecutor().execute(() -> {
                             try {
                                 image.writeTo(file2);
-                                String endpoint = "http://panel.chillywilly.me:8164/up_post";
+                                String endpoint = url + "/up_post";
 
+                                
                                 try {
                                     uploadFile(file2, endpoint, auth);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
+                            
                             } catch (Exception e) {
                                 CameraPluginHelper.LOGGER.info("Couldn't save screenshot: ", e);
                             } finally {
                                 image.close();
-                                ClientPlayNetworking.send(NetConst.SCREENSHOT_TAKEN_ID, PacketByteBufs.empty());
                             }
                         });
                     });
