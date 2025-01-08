@@ -46,7 +46,7 @@ public class NetManager {
 
                                 
                                 try {
-                                    CameraPluginHelperClient.taking_screenshot = true;
+                                    CameraPluginHelperClient.taking_screenshot = false;
                                     uploadFile(file2, endpoint, auth);
                                 } catch (IOException e) {
                                     e.printStackTrace();
