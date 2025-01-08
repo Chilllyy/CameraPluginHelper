@@ -9,6 +9,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import me.chillywilly.CameraPluginHelper;
+import me.chillywilly.CameraPluginHelperClient;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -28,9 +29,7 @@ public class NetManager {
             byte[] data = buf.readByteArray();
             String url = new String(data, StandardCharsets.UTF_8);
             int auth = buf.readInt();
-            client.execute(() -> {
-                client.setScreen(null);
-            });
+            CameraPluginHelperClient.taking_screenshot = true;
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -47,6 +46,7 @@ public class NetManager {
 
                                 
                                 try {
+                                    CameraPluginHelperClient.taking_screenshot = true;
                                     uploadFile(file2, endpoint, auth);
                                 } catch (IOException e) {
                                     e.printStackTrace();
