@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "camera-helper",
+	"id": "camera-plugin-helper",
 	"version": "${version}",
-	"name": "Camera Helper",
+	"name": "Camera Plugin Helper",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -12,27 +12,27 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/camera-helper/icon.png",
+	"icon": "assets/camera-plugin-helper/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"me.chillywilly.CameraHelper"
+			"me.chillywilly.CameraPluginHelper"
 		],
 		"client": [
-			"me.chillywilly.CameraHelperClient"
+			"me.chillywilly.CameraPluginHelperClient"
 		]
 	},
 	"mixins": [
-		"camera-helper.mixins.json",
+		"camera-plugin-helper.mixins.json",
 		{
-			"config": "camera-helper.client.mixins.json",
+			"config": "camera-plugin-helper.client.mixins.json",
 			"environment": "client"
 		}
 	],
 	"depends": {
 		"fabricloader": ">=0.16.9",
-		"minecraft": "~1.21",
-		"java": ">=21",
+		"minecraft": "~1.20.4",
+		"java": ">=17",
 		"fabric-api": "*"
 	},
 	"suggests": {
