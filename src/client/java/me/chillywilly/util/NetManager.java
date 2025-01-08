@@ -72,6 +72,7 @@ public class NetManager {
     }
 
     public static void uploadFile(File file, String URL, int auth) throws IOException {
+        CameraPluginHelper.LOGGER.info("Uploading file to URL: " + URL + " with auth code " + auth);
         OkHttpClient client = new OkHttpClient();
 
         RequestBody body = RequestBody.create(file, MediaType.parse("image/png"));
