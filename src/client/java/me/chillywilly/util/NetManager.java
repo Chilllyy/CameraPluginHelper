@@ -90,6 +90,7 @@ public class NetManager {
         try (Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 CameraPluginHelper.LOGGER.info("Successfully uploaded image: " + file.getName());
+                file.delete();
             } else {
                 CameraPluginHelper.LOGGER.warn("Upload Failed: " + response.code());
             }
