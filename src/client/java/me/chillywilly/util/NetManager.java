@@ -59,30 +59,25 @@ public class NetManager {
                     @Override
                     public void run() {
                         context.client().execute(() -> {
-                            NativeImage image = ScreenshotRecorder.takeScreenshot(MinecraftClient.getInstance().getFramebuffer());
-                        File file = new File(MinecraftClient.getInstance().runDirectory, "screenshots" + File.separator + "camera-companion");
-                        file.mkdirs();
-                        File file2 = NetManager.getScreenshotFile(file);
-        
-                        Util.getIoWorkerExecutor().execute(() -> {
-                            try {
-                                image.writeTo(file2);
-                                String endpoint = url + "/up_post";
+                            ScreenshotRecorder.takeScreenshot(MinecraftClient.getInstance().getFramebuffer(), callback -> {
+                                File file = new File(MinecraftClient.getInstance().runDirectory, "screenshots" + File.separator + "camera-companion");
+                                file.mkdirs();
+                                File file2 = NetManager.getScreenshotFile(file);
 
-                                
-                                try {
-                                    CameraPluginHelperClient.taking_screenshot = false;
-                                    uploadFile(file2, endpoint, auth);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            
-                            } catch (Exception e) {
-                                CameraPluginHelper.LOGGER.info("Couldn't save screenshot: ", e);
-                            } finally {
-                                image.close();
-                            }
-                        });
+                                Util.getIoWorkerExecutor().execute(() -> {
+                                    try {
+                                        callback.writeTo(file2);
+                                        String endpoint = url + "/up_post";
+
+                                        CameraPluginHelperClient.taking_screenshot = false;
+                                        uploadFile(file2, endpoint, auth);
+                                    } catch(IOException e) {
+                                        CameraPluginHelper.LOGGER.warn("Unable to upload screenshot or save file {}", e.getMessage(), e);
+                                    } finally {
+                                        callback.close();
+                                    }
+                                });
+                            });
                         });
                     }
                 }, 250);
