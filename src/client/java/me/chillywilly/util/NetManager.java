@@ -15,11 +15,11 @@ import me.chillywilly.util.packets.tx.CompanionFoundPacket;
 import me.chillywilly.util.packets.tx.ScreenshotTakenPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.util.ScreenshotRecorder;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.Overlay;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.codec.StreamCodec;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -30,15 +30,15 @@ import okhttp3.Response;
 public class NetManager {
     public static void init() {
         //Receive
-		PayloadTypeRegistry.playS2C().register(ScreenshotPacket.ID, ScreenshotPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(CompanionCheckPacket.ID, PacketCodec.unit(new CompanionCheckPacket()));
+		PayloadTypeRegistry.clientboundPlay().register(ScreenshotPacket.TYPE, ScreenshotPacket.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(CompanionCheckPacket.TYPE, StreamCodec.unit(new CompanionCheckPacket()));
 
 		//Send
-		PayloadTypeRegistry.playC2S().register(CompanionFoundPacket.ID, PacketCodec.unit(new CompanionFoundPacket()));
-		PayloadTypeRegistry.playC2S().register(ScreenshotTakenPacket.ID, PacketCodec.unit(new ScreenshotTakenPacket()));
+		PayloadTypeRegistry.serverboundPlay().register(CompanionFoundPacket.TYPE, StreamCodec.unit(new CompanionFoundPacket()));
+		PayloadTypeRegistry.serverboundPlay().register(ScreenshotTakenPacket.TYPE, StreamCodec.unit(new ScreenshotTakenPacket()));
 
         
-        ClientPlayNetworking.registerGlobalReceiver(CompanionCheckPacket.ID, (payload, context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(CompanionCheckPacket.TYPE, (payload, context) -> {
             context.client().execute(() -> {
                 CameraPluginHelper.LOGGER.info("Received Companion request!");
 
@@ -48,35 +48,45 @@ public class NetManager {
             });
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(ScreenshotPacket.ID, (payload, context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(ScreenshotPacket.TYPE, (payload, context) -> {
             context.client().execute(() -> {
                 String url = payload.URL();
                 int auth = payload.auth();
                 CameraPluginHelper.LOGGER.info("Received Screenshot Packet!: " + payload.URL() + " with auth " + payload.auth());
-                CameraPluginHelperClient.taking_screenshot = true;
-                
+                Minecraft instance = Minecraft.getInstance();
+
+                Screen screen = instance.screen;
+                Overlay overlay = instance.getOverlay();
+                boolean pause = instance.options.pauseOnLostFocus;
+                boolean hideUI = instance.options.hideGui;
+
+                instance.options.pauseOnLostFocus = false;
+                instance.options.hideGui = true;
+                instance.setScreen(null);
+                instance.setOverlay(null);
+
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
                         context.client().execute(() -> {
-                            ScreenshotRecorder.takeScreenshot(MinecraftClient.getInstance().getFramebuffer(), callback -> {
-                                File file = new File(MinecraftClient.getInstance().runDirectory, "screenshots" + File.separator + "camera-companion");
+                            Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget(), callback -> {
+                                File file = new File(Minecraft.getInstance().gameDirectory, "screenshots" + File.separator + "camera-companion");
                                 file.mkdirs();
                                 File file2 = NetManager.getScreenshotFile(file);
+                                try {
+                                    callback.writeToFile(file2);
+                                    String endpoint = url + "/up_post";
 
-                                Util.getIoWorkerExecutor().execute(() -> {
-                                    try {
-                                        callback.writeTo(file2);
-                                        String endpoint = url + "/up_post";
-
-                                        CameraPluginHelperClient.taking_screenshot = false;
-                                        uploadFile(file2, endpoint, auth);
-                                    } catch(IOException e) {
-                                        CameraPluginHelper.LOGGER.warn("Unable to upload screenshot or save file {}", e.getMessage(), e);
-                                    } finally {
-                                        callback.close();
-                                    }
-                                });
+                                    uploadFile(file2, endpoint, auth);
+                                } catch(IOException e) {
+                                    CameraPluginHelper.LOGGER.warn("Unable to upload screenshot or save file {}", e.getMessage(), e);
+                                } finally {
+                                    callback.close();
+                                    instance.setScreen(screen);
+                                    instance.setOverlay(overlay);
+                                    instance.options.pauseOnLostFocus = pause;
+                                    instance.options.hideGui = hideUI;
+                                }
                             });
                         });
                     }

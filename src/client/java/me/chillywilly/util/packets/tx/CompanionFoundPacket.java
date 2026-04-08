@@ -1,13 +1,13 @@
 package me.chillywilly.util.packets.tx;
 
 import me.chillywilly.util.NetConst;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record CompanionFoundPacket() implements CustomPayload {
-    public static final CustomPayload.Id<CompanionFoundPacket> ID = new CustomPayload.Id<>(NetConst.COMPANION_FOUND_ID);
+public record CompanionFoundPacket() implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<CompanionFoundPacket> TYPE = new CustomPacketPayload.Type<>(NetConst.COMPANION_FOUND_ID);
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

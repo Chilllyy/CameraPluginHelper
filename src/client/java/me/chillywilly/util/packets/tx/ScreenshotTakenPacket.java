@@ -1,13 +1,13 @@
 package me.chillywilly.util.packets.tx;
 
 import me.chillywilly.util.NetConst;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record ScreenshotTakenPacket() implements CustomPayload {
-    public static final CustomPayload.Id<ScreenshotTakenPacket> ID = new CustomPayload.Id<>(NetConst.SCREENSHOT_TAKEN_ID);
+public record ScreenshotTakenPacket() implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ScreenshotTakenPacket> TYPE = new CustomPacketPayload.Type<>(NetConst.SCREENSHOT_TAKEN_ID);
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

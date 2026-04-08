@@ -1,23 +1,23 @@
 package me.chillywilly.util.packets.rx;
 
 import me.chillywilly.util.NetConst;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record ScreenshotPacket(String URL, Integer auth) implements CustomPayload {
-    public static final CustomPayload.Id<ScreenshotPacket> ID = new CustomPayload.Id<>(NetConst.SCREENSHOT_PACKET_ID);
-    public static final PacketCodec<RegistryByteBuf, ScreenshotPacket> CODEC = PacketCodec.tuple(
-        PacketCodecs.STRING, ScreenshotPacket::URL, 
-        PacketCodecs.INTEGER, ScreenshotPacket::auth, 
-        ScreenshotPacket::new
+public record ScreenshotPacket(String URL, Integer auth) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ScreenshotPacket> TYPE = new CustomPacketPayload.Type<>(NetConst.SCREENSHOT_PACKET_ID);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ScreenshotPacket> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, ScreenshotPacket::URL,
+            ByteBufCodecs.INT, ScreenshotPacket::auth,
+            ScreenshotPacket::new
     );
 
 
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }
