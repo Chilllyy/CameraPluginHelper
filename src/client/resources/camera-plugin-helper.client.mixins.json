@@ -3,8 +3,6 @@
 	"package": "me.chillywilly.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"RemoveHud",
-		"NoPause"
 	],
 	"injectors": {
 		"defaultRequire": 1
