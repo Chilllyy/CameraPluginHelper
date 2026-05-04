@@ -34,6 +34,6 @@
 		"minecraft": "~26.1.1",
 		"java": ">=21",
 		"fabric-api": "*",
-		"fabric-language-kotlin": "${fabric_language_kotlin_version}"
+		"fabric-language-kotlin": ">=${fabric_language_kotlin_version}"
 	}
 }
