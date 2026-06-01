@@ -55,21 +55,23 @@ public class NetManager {
                 CameraPluginHelper.LOGGER.info("Received Screenshot Packet!: " + payload.URL() + " with auth " + payload.auth());
                 Minecraft instance = Minecraft.getInstance();
 
-                Screen screen = instance.screen;
-                Overlay overlay = instance.getOverlay();
+                Screen screen = instance.gui.screen();
+                Overlay overlay = instance.gui.overlay();
                 boolean pause = instance.options.pauseOnLostFocus;
-                boolean hideUI = instance.options.hideGui;
+                boolean hideUI = instance.gui.hud.isHidden();
 
                 instance.options.pauseOnLostFocus = false;
-                instance.options.hideGui = true;
-                instance.setScreen(null);
-                instance.setOverlay(null);
+                if (!instance.gui.hud.isHidden()) { //Hide GUI if not already
+                    instance.gui.hud.toggle();
+                }
+
+                instance.setScreenAndShow(null);
 
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
                         context.client().execute(() -> {
-                            Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget(), callback -> {
+                            Screenshot.takeScreenshot(Minecraft.getInstance().gameRenderer.mainRenderTarget(), callback -> {
                                 File file = new File(Minecraft.getInstance().gameDirectory, "screenshots" + File.separator + "camera-companion");
                                 file.mkdirs();
                                 File file2 = NetManager.getScreenshotFile(file);
@@ -82,10 +84,12 @@ public class NetManager {
                                     CameraPluginHelper.LOGGER.warn("Unable to upload screenshot or save file {}", e.getMessage(), e);
                                 } finally {
                                     callback.close();
-                                    instance.setScreen(screen);
-                                    instance.setOverlay(overlay);
+                                    instance.gui.setScreen(screen);
+                                    instance.gui.setOverlay(overlay);
                                     instance.options.pauseOnLostFocus = pause;
-                                    instance.options.hideGui = hideUI;
+                                    if (hideUI != instance.gui.hud.isHidden()) { //Toggle back if it needs to be
+                                        instance.gui.hud.toggle();
+                                    }
                                 }
                             });
                         });
